@@ -7,6 +7,7 @@ class ServerApi {
     this.app = express();
     this.port = 3000;
     this.alumnoRoutes = `/API/${entidad}`
+    this.authRoutes = `/API/${entidad}/auth`
     //Conectar a base de datos
     this.conectarDB();
 
@@ -33,6 +34,7 @@ class ServerApi {
 
   routes() {
     this.app.use(this.alumnoRoutes,require('../routes/alumno.routes'))
+    this.app.use(this.authRoutes,require('../routes/auth.routes'))
   }
 
   listen() {

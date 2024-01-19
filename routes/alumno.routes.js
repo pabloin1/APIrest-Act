@@ -9,11 +9,15 @@ const {
 const { check } = require("express-validator");
 const { validarCampos } = require("../middlewares/validar-campos.js");
 const { existeMatricula, existeId } = require("../helpers/db-validator.js");
+const { validarJwt } = require("../middlewares/validar-jwt.js");
 const routerAlumno = Router();
 
 //IMPORTANTE: validarCampos debe de ir siempre al final de la posicion del arreglo de middlewares
 
-routerAlumno.get("/", obtenerEntidad);
+routerAlumno.get("/",[
+  validarJwt,
+  validarCampos
+], obtenerEntidad);
 
 routerAlumno.get(
   "/:id",
@@ -26,6 +30,7 @@ routerAlumno.post(
   [check("matricula").custom(existeMatricula), validarCampos],
   crearEntidad
 );
+
 
 routerAlumno.patch(
   "/alumnos/:id",

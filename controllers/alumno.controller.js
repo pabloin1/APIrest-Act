@@ -1,4 +1,7 @@
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const Alumno = require("../models/alumno");
+
 
 // Controlador para obtener todos los alumno con paginación y ordenamiento
 const obtenerEntidad = async (req, res) => {
@@ -30,7 +33,7 @@ const obtenerEntidad = async (req, res) => {
 
 // Controlador para crear una nueva alumno, las validaciones se hacen en db-validator
 const crearEntidad = async (req, res) => {
-  const { nombre, apellidoMaterno, apellidoPaterno, matricula } = req.body;
+  const { nombre, apellidoMaterno, apellidoPaterno, matricula,password } = req.body;
 
   try {
     const nuevoAlumno = new Alumno({
@@ -38,6 +41,7 @@ const crearEntidad = async (req, res) => {
       apellidoMaterno,
       apellidoPaterno,
       matricula,
+      password,
       createdAt : new Date(),
     });
 
@@ -192,5 +196,5 @@ module.exports = {
   actualizarEntidad,
   eliminarEntidad: eliminarAlumnoFisico,
   obtenerAlumnoPorId,
-  actualizarEntidadPatch
+  actualizarEntidadPatch,
 };
