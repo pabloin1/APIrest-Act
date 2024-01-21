@@ -68,9 +68,12 @@ const actualizarEntidad = async (req, res) => {
 
     if (!alumno) {
       return res.status(404).json({
-        msg: "Alumno no encontrada",
+        msg: "Alumno no encontrado",
       });
     }
+
+    // Guardar el estado anterior del alumno
+    const estadoAnterior = { ...alumno.toObject() };
 
     alumno.nombre = nombre;
     alumno.apellidoMaterno = apellidoMaterno;
@@ -79,6 +82,18 @@ const actualizarEntidad = async (req, res) => {
     alumno.updatedAt = new Date();
 
     await alumno.save();
+
+    // Enviar notificación a través de WebSocket
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          tipo: 'actualizacion',
+          mensaje: `Alumno actualizado: ${alumno.nombre} ${alumno.apellidoPaterno}`,
+          estadoAnterior,
+          nuevoEstado: alumno.toObject(),
+        }));
+      }
+    });
 
     res.status(200).json({
       msg: "Alumno actualizado correctamente",
@@ -93,7 +108,8 @@ const actualizarEntidad = async (req, res) => {
 };
 
 
-// Controlador para eliminar físicamente una alumno
+
+// Controlador para eliminar físicamente un alumno
 const eliminarAlumnoFisico = async (req, res) => {
   const id = req.params.id;
 
@@ -102,15 +118,26 @@ const eliminarAlumnoFisico = async (req, res) => {
 
     if (!alumno) {
       return res.status(404).json({
-        msg: "Alumno no encontrada",
+        msg: "Alumno no encontrado",
       });
     }
 
-    // Eliminación física (borrado permanente)
-    await Alumno.deleteOne({ _id: id });
+    // Guardar el estado del alumno antes de eliminar
+    const estadoAnterior = { ...alumno.toObject() };
+
+    // Enviar notificación a través de WebSocket
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          tipo: 'eliminacion',
+          mensaje: `Alumno eliminado: ${alumno.nombre} ${alumno.apellidoPaterno}`,
+          estadoAnterior,
+        }));
+      }
+    });
 
     return res.status(200).json({
-      msg: "Alumno eliminada físicamente",
+      msg: "Alumno eliminado físicamente",
     });
   } catch (error) {
     console.error(error);
@@ -119,6 +146,7 @@ const eliminarAlumnoFisico = async (req, res) => {
     });
   }
 };
+
 
 const obtenerAlumnoPorId = async (req, res) => {
   const id = req.params.id;

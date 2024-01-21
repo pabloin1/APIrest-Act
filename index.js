@@ -3,5 +3,5 @@ const ServerAPI = require('./server/server.js')
 
 const serverAPI = new ServerAPI();
 
-serverAPI.listen()
+serverAPI.listen
 
