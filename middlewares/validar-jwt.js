@@ -1,33 +1,33 @@
 const { request, response } = require("express");
 const jwt = require("jsonwebtoken");
-const Alumno = require("../models/alumno");
+const Administrador = require("../models/administrador");
 
-const validarJwt = async(req = request, res = response, next) => {
+const validarJwt = async (req = request, res = response, next) => {
   const token = req.header("Authorization");
 
   if (!token) {
     return res.status(401).json({
-      msg: "no hay token",
+      msg: "No hay token",
     });
   }
 
   try {
-    const {id} =jwt.verify(token, process.env.SECRET_KEY);
+    const { id } = jwt.verify(token, process.env.SECRET_KEY);
 
-    const alumnoAuth = await Alumno.findById(id)
+    const administradorAuth = await Administrador.findById(id);
 
-    if (!alumnoAuth) {
-      return res.json({msg:"el usuario no existe en DB"})
+    if (!administradorAuth) {
+      return res.json({ msg: "Rol invalido" });
     }
 
-    req.alumno = alumnoAuth;
-   
+    req.administrador = administradorAuth;
+
     next();
   } catch (error) {
     console.log(error);
 
     res.status(401).json({
-      msg: "token no valido",
+      msg: "Token no válido",
     });
   }
 };

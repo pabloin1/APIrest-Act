@@ -1,5 +1,3 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
 const Alumno = require("../models/alumno");
 
 
@@ -110,36 +108,28 @@ const actualizarEntidad = async (req, res) => {
 
 
 // Controlador para eliminar físicamente un alumno
-const eliminarAlumnoFisico = async (req, res) => {
+const eliminarAlumnoFisico = async (req, res,notificador) => {
   const id = req.params.id;
 
   try {
-    const alumno = await Alumno.findById(id);
-
+    const alumno = await Alumno.findByIdAndDelete(id);
+  
     if (!alumno) {
       return res.status(404).json({
-        msg: "Alumno no encontrado",
+        msg: "Alumno no encontrado",z00
       });
     }
 
     // Guardar el estado del alumno antes de eliminar
     const estadoAnterior = { ...alumno.toObject() };
 
-    // Enviar notificación a través de WebSocket
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({
-          tipo: 'eliminacion',
-          mensaje: `Alumno eliminado: ${alumno.nombre} ${alumno.apellidoPaterno}`,
-          estadoAnterior,
-        }));
-      }
-    });
-
+   
+    notificador.responderClientes("eliminado exitosamente");
     return res.status(200).json({
       msg: "Alumno eliminado físicamente",
     });
   } catch (error) {
+    notificador.responderClientes("eliminado exitosamente");
     console.error(error);
     res.status(500).json({
       msg: "Error al eliminar alumno físicamente",
@@ -218,6 +208,30 @@ const actualizarEntidadPatch = async (req, res) => {
 };
 
 
+const alumnoConectados = [];
+
+const alumnosConectados = (socket) => {
+
+  alumnoConectados.push(socket);
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+  
+    const index = alumnoConectados.indexOf(socket);
+    if (index !== -1) {
+      alumnoConectados.splice(index, 1);
+    }
+  });
+};
+
+const contarAlumnosConectados = (req, res) => {
+  const conectados = alumnosConectados.length;
+  res.status(200).json({ conectados });
+}
+
+
+
+
 module.exports = {
   obtenerEntidad,
   crearEntidad,
@@ -225,4 +239,6 @@ module.exports = {
   eliminarEntidad: eliminarAlumnoFisico,
   obtenerAlumnoPorId,
   actualizarEntidadPatch,
+  contarAlumnosConectados,
+  alumnosConectados
 };
